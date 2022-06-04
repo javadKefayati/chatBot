@@ -1,16 +1,23 @@
 import math
 import sys
+
 class Similarities:
       frequently_list = {}
       length_Doc = 0
+      documentsList = {}
       documents = []
       idf_list = {}
+      query = ""
+      distanceDoc = {}
+      cosSimList = {}
       
-      def __init__(self,listOfDoc):
+      def __init__(self, listOfDoc):
             for doc in listOfDoc:
                   self.addDocument(doc)
                   
             self.createIdfList()
+            self.createTfList()
+            
             
       
       def addDocument(self , document):
@@ -19,7 +26,7 @@ class Similarities:
             listOfFrequency = {}
             
             for word in listOfDoc:
-                  listOfFrequency[word] = listOfFrequency.get(word,0)+1
+                  listOfFrequency[word] = listOfFrequency.get(word, 0)+1
                   self.frequently_list[word] = self.frequently_list.get(word, 0) + 1
 
             self.tf_list = listOfDoc
@@ -27,38 +34,94 @@ class Similarities:
             #increase number of document        
             self.length_Doc = self.length_Doc + 1
             # add information to list     
-            self.documents.append(["d"+str (self.length_Doc), listOfFrequency])
+            self.documentsList["d"+str (self.length_Doc)]= listOfFrequency
+            self.documents.append(document)
+            
       
       def createIdfList(self):
+            
             for word in self.frequently_list:
                   repeat = self.numberRepeatInDocs(word)
                   self.idf_list[word] = math.log2(self.length_Doc/repeat)
       
       def createTfList(self):
             
-            for list in self.documents:
-                  key = list[0]
-                  words = list[1]
+            for key in self.documentsList:
+                  words = self.documentsList[key]
+                  for word in words:
+                        words[word] = self.idf_list[word] * words[word]
                   
-                        
-                        
+                  self.documentsList[key] = words      
                   
-      
       def numberRepeatInDocs(self ,word):
             number = 0
-            for list in self.documents:
-                  words = list[1]
+            for key in self.documentsList:
+                  words = self.documentsList[key]
                   if word in words:
                         number = number + 1
             return number
+
+      def setQueryDf(self):
+            listOfWords = self.query.split(" ")
+            frequentlyQuery = {}
+            for word in listOfWords:
+                        frequentlyQuery[word] = frequentlyQuery.get(word, 0)+1
             
+            tempDic={}
+            
+            maxRepeat= max(frequentlyQuery.values())
+            
+            for key in self.frequently_list:
+                  if key in frequentlyQuery:
+                        tempDic[key] = self.idf_list[key] * (frequentlyQuery[key]/maxRepeat)
+                        
+            self.documentsList["q"] = tempDic
             
 
-s =  Similarities()
-s.addDocument("new york times")
-s.addDocument("new york post")
-s.addDocument("los angeles times")
-s.createTfList()
-print(s.idf_list)
+      def setDistance(self):
+            
+            for key in self.documentsList:
+                  list_of_tf = self.documentsList[key]
+                  sum = 0
+                  for key_tf in list_of_tf:
+                        sum = sum + float (list_of_tf[key_tf] ** 2)
+                  
+                  self.distanceDoc[key] = math.sqrt((sum))
+                  
+      def setQuery(self,quey):
+            self.query = quey
+            self.setQueryDf()
+            self.setDistance()
+            self.cosSim()
+            
+            
+            
+      def cosSim(self):
+            
+            qTfList = self.documentsList["q"]
+            print(self.documentsList)
+            # print(self.tf_list)
+            listOfTf = self.documentsList
+            listOfTf.pop("q")
+            for key in self.documentsList:
+                  sum = 0
+                  list_of_tf = self.documentsList[key]
+                  for word in list_of_tf:
+                        if word in qTfList:
+                              sum = sum +(qTfList[word] * list_of_tf[word])
+                  print(sum)            
+                  sum = sum /(self.distanceDoc[key]*self.distanceDoc["q"])
+                  self.cosSimList[key] = sum
+                  sum =0
+            print(self.cosSimList)
+                              
+                  
+            
+                  
+      
+                  
+                  
+                  
+            
 
 
