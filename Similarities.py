@@ -5,7 +5,7 @@ class Similarities:
       frequently_list = {}
       length_Doc = 0
       documentsList = {}
-      documents = []
+      documents = {}
       idf_list = {}
       query = ""
       distanceDoc = {}
@@ -35,7 +35,7 @@ class Similarities:
             self.length_Doc = self.length_Doc + 1
             # add information to list     
             self.documentsList["d"+str (self.length_Doc)]= listOfFrequency
-            self.documents.append(document)
+            self.documents["d"+str(self.length_Doc)] = document
             
       
       def createIdfList(self):
@@ -99,8 +99,7 @@ class Similarities:
       def cosSim(self):
             
             qTfList = self.documentsList["q"]
-            print(self.documentsList)
-            # print(self.tf_list)
+
             listOfTf = self.documentsList
             listOfTf.pop("q")
             for key in self.documentsList:
@@ -109,19 +108,23 @@ class Similarities:
                   for word in list_of_tf:
                         if word in qTfList:
                               sum = sum +(qTfList[word] * list_of_tf[word])
-                  print(sum)            
+
                   sum = sum /(self.distanceDoc[key]*self.distanceDoc["q"])
                   self.cosSimList[key] = sum
                   sum =0
-            print(self.cosSimList)
-                              
-                  
+      def MaxArr(self):
+            max = 0
+            maxIndex = ""
+            for i in self.cosSimList:                  
+                  valueL = float(self.cosSimList[i])
+                  if float(valueL)> float(max):
+                        max = valueL
+                        maxIndex = i
+            return maxIndex
+      def result(self):
+          maxDoc = self.MaxArr()
+          
+          return self.documents[maxDoc], float(self.cosSimList[maxDoc])
             
-                  
-      
-                  
-                  
-                  
             
-
 
