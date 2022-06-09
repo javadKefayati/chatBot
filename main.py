@@ -1,22 +1,44 @@
 import os 
 import telebot 
+import logging
+import enum
+import json
+
+from Response import Response
+
+          
+
+logging.basicConfig(filename="log.txt", level=logging.INFO)
+
 
 def listener(messages):
     """
     When new messages arrive TeleBot will call this function.
+    This func give query from telegram bot and response them.
     """
+    
     print(messages)
     for m in messages:
-        chatid = m.chat.id
+        chatid = m.chat.id #give user id for resend message 
         print("chatId=",m.chat.id)
-        print("m.content_type=",m.content_type)
-        if m.content_type == 'text' and m.text!="/help" and m.text !="/start":
-            print("m.txt=",m.text)
+        print("m.content_type=",m.content_type) 
+        if m.content_type == 'text' and m.text!="/help" and m.text !="/start" and m.text !="/items": #check format message has text and doesn't has /help or /start 
+            # s =  Similarities([])
+            with open("question.json", "r") as file:
+                dataQ = json.load(file)
+            
+            
             text = m.text
+        
+            r = Response()
             print(text)
-            bot.send_message(chatid, text)
+            response = r.getResponse(str(text.strip()))
+            
+            
 
+            bot.send_message(chatid, response)
 
+#api key for connect to telegram bot
 TOKEN = "5331090152:AAHfzMVzZuiJQq9ChEsQ9ttc0pkkRfH9zXU"
 bot = telebot.TeleBot(TOKEN)
 
@@ -27,6 +49,10 @@ def start(message):
 @bot.message_handler(commands =["help"])
 def help(message):
       bot.reply_to(message,"this message for help you !!!")
+      
+@bot.message_handler(commands =["items"])
+def items(message):
+      bot.reply_to(message,"سیب - انار -گلابی- بستنی- شیر - موز")
 
       
 # bot.polling()
