@@ -3,7 +3,8 @@ import telebot
 import logging
 import enum
 import json
-
+import re
+from db import db
 from Response import Response
 
 def logFile():
@@ -13,16 +14,14 @@ logFile()
 
 
 def listener(messages):
+    
     """
     When new messages arrive TeleBot will call this function.
     This func give query from telegram bot and response them.
     """
-    
-    print(messages)
     for m in messages:
         chatid = m.chat.id #give user id for resend message 
-        print("chatId=",m.chat.id)
-        print("m.content_type=",m.content_type) 
+
         if m.content_type == 'text' and m.text!="/help" and m.text !="/start" and m.text !="/items": #check format message has text and doesn't has /help or /start 
             # s =  Similarities([])
             with open("question.json", "r") as file:
@@ -30,15 +29,44 @@ def listener(messages):
             # logging.basicConfig(filename='./info.log', encoding='utf-8', level=logging.INFO)
             
             text = m.text
-        
+            username = str(m.chat.username)
+            first_name = str(m.chat.first_name)
+            last_name = str(m.chat.last_name)
+            t= db()
+            t.addUserIfNotExist(chatid,first_name,username)
             r = Response()
             print(text)
-            logging.info('chat Id='+str(chatid)+"---text="+text)
-            response , err = r.getResponse(str(text.strip()))
-            if err ==0:
+            
+            logging.info('ci='+str(chatid)+"-un ="+username+"-fn:"+first_name+"-ln:"+last_name+"-t="+text)
+            response, group, err = r.getResponse(str(text.strip()))
+            print("g="+group)
+            
+            if err ==1 and t.getFlag(chatid)==0:
                       bot.send_message(chatid, "توان فهم ورودی شما را ندارم\nلطفا واضح تر بیان کنید")
-            else :
+                      
+            
+                      
+            #normal status
+            if group != "Shop" and err == 0 and t.getFlag(chatid) == 0:
                       bot.send_message(chatid, response)
+            
+            if group == "Shop" and err == 0 and t.getFlag(chatid) == 0 :
+                      t.changeFlagUser(chatid,1)
+                      bot.send_message(chatid, response)
+                      
+            elif   t.getFlag(chatid) == 1:
+                      isNumber = re.search("\d+", text)
+                      if isNumber==None:
+                                bot.send_message(chatid, " لطفا مقدار وارد کنید ")
+                      else :
+                        t.changeFlagUser(chatid,0)
+                        number = isNumber
+                        bot.send_message(chatid, number.group())
+                        
+            print("fl="+str(t.getFlag(chatid)))
+                        
+                        
+                      
 
 #api key for connect to telegram bot
 TOKEN = "5331090152:AAHfzMVzZuiJQq9ChEsQ9ttc0pkkRfH9zXU"
