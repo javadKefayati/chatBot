@@ -10,7 +10,8 @@ class db:
                   user="root",
                   password="", 
                   database="ai"
-                        )                 
+                        )
+      items = ["سیب" , "انار" ,"گلابی","بستنی", "شیر","موز"]       
        
       def getInfo(self,tableName,selector =" ",where=""):
             mycursor = self.mydb.cursor()
@@ -40,8 +41,8 @@ class db:
                         valStr += " %s "
                   
             sql = "INSERT INTO "+tableName+" ( "+col+ ") VALUES ( "+valStr+" )"
-            print(sql)
-            print(value)
+            # print(sql)
+            # print(value)
 
             mycursor = self.mydb.cursor()
             mycursor.execute(sql, value)
@@ -52,7 +53,7 @@ class db:
             mycursor = self.mydb.cursor()
 
             sql = "UPDATE "+tableName+"  SET "+data+" WHERE "+where
-
+            # print(sql)
             mycursor.execute(sql)
 
             self.mydb.commit()
@@ -67,11 +68,54 @@ class db:
             # print(user)
       def getFlag(self,chatId):
             return self.getInfo("user","flag","id="+str(chatId))[0][0]
+      
+      def checkItem(self , query):
+            for i in self.items:
+                  item = re.search(str(i), query)
+                  if item != None:
+                        return i
+            return ""
+      def setTempItem(self,chatid,response):
+            print("res"+response)
+            item = self.checkItem(response)
+            print("item -"+item)
+            self.edit("user","temp='"+item+"'","id="+str(chatid))
+                        
+                  
+      def setOrder(self,chatid,itemName,value,status):
+            self.setInfo("`order`",["id","item","value","status"],[str(chatid),str(itemName),str(value),status])
+      
+      def getTempIndexFromUser(self,chatid):
+           return self.getInfo("user","temp","id="+str(chatid))[0][0]
             
+      def getTempOrder(self,chatid):
+            items =self.getInfo("`order`"," item , value ", "status=0 and id="+str(chatid))
             
+            orders = ""
+            for item in items:
+                  orders += "کالا : "+item[0]+"-- اندازه : "+item[1]+" کیلو\n"
+            if orders != "":
+                  return orders+"\n اگر تمایل به اتمام سفارشات دارید لطفا *بله و اگر خیر ، *خیر را تایپ کنید"
+            else :
+                  orders +"هم اکنون سفارشی ندارید"
+      
+      def acceptAllOrder(self,chatid):
+            self.edit("`order`","status=1"," status=0 and id="+str(chatid) )
+
+      def allOrder(self,chatid):
+             items =self.getInfo("`order`"," item , value ", "status=1 and id="+str(chatid))
+            #  print(items)
+             orders = ""
+             for item in items:
+                  orders += "کالا : "+item[0]+"-- اندازه : "+item[1]+" کیلو\n"
+             return orders
             
 
-# t =Tools()
+# t =db()
+# print(t.getTempOrder("950641524"))
+# print(t.setTempItem("23","بستنی میخواهم"))
+# t.setOrder("23","holo","2",1)
+# t.getTempIndexFromUser("10")
 # id =t.getInfo("user",selector="id",where="id=1")
 # t.setInfo("user",["id","name","userName","flag"],["2","ali","afds3",1])
 # t.edit("user","id=10","id=1")
