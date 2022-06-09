@@ -6,9 +6,10 @@ import json
 
 from Response import Response
 
-          
+def logFile():
+    logging.basicConfig(filename='./info.log', encoding='utf-8', level=logging.INFO)
 
-logging.basicConfig(filename="log.txt", level=logging.INFO)
+logFile()
 
 
 def listener(messages):
@@ -26,17 +27,18 @@ def listener(messages):
             # s =  Similarities([])
             with open("question.json", "r") as file:
                 dataQ = json.load(file)
-            
+            # logging.basicConfig(filename='./info.log', encoding='utf-8', level=logging.INFO)
             
             text = m.text
         
             r = Response()
             print(text)
-            response = r.getResponse(str(text.strip()))
-            
-            
-
-            bot.send_message(chatid, response)
+            logging.info('chat Id='+str(chatid)+"---text="+text)
+            response , err = r.getResponse(str(text.strip()))
+            if err ==0:
+                      bot.send_message(chatid, "توان فهم ورودی شما را ندارم\nلطفا واضح تر بیان کنید")
+            else :
+                      bot.send_message(chatid, response)
 
 #api key for connect to telegram bot
 TOKEN = "5331090152:AAHfzMVzZuiJQq9ChEsQ9ttc0pkkRfH9zXU"
