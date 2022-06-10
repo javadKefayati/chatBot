@@ -4,15 +4,22 @@ import json
 import  sys
 
 
-
 class Response:
       questionData = {}
       answerData = {}
       listOfData = []
       
-      def __init__(self , dataQ,dataA):
+      def __init__(self):
+            
+            with open("question.json", "r") as file:
+                dataQ = json.load(file)
+
+            with open("answer.json", "r") as file:
+                dataA = json.load(file)
+                
             self.questionData = dataQ
             self.answerData = dataA
+            self.createListOfDataWithoutKey()
             
             
       def createListOfDataWithoutKey(self):
@@ -21,25 +28,32 @@ class Response:
             return self.listOfData
       
       def checkGroup(self, query):
+            
             sim = Similarities()
             sim.initClass(self.listOfData)
-            sim.setQuery(query)
-            namSimilarities , valueSimilarities = sim.result()
-            print(namSimilarities)
-            for d in self.questionData:
-                  nL = self.questionData[d]
-                  for n in nL:
-                      if n == namSimilarities:
-                            return d
-      
+            if sim.setQuery(query) == 0:
+                  return "","", 1
+            else:
+                  namSimilarities , valueSimilarities = sim.result()
+                  print(namSimilarities)
+                  for d in self.questionData:
+                        nL = self.questionData[d]
+                        for n in nL:
+                            if n == namSimilarities:
+                                return d, n,0
+
       def getResponse(self,query):
-            group = self.checkGroup(query)
+            group,nearQ ,error = self.checkGroup(query)
+            if error==1:
+                  return "","","", 1
             
+                       
             for a in self.answerData:
                   if a == group:
                         nList = self.answerData[a]
                         randIndex = random.randint(0, len(nList)-1)
-                        print( nList[randIndex])
+                        print("nl="+nList[randIndex]+"---"+group+"--"+nearQ)
+                        return nList[randIndex], group,nearQ, 0
                         
                   
             
@@ -48,14 +62,6 @@ class Response:
                   
 
 
-with open("question.json", "r") as file:
-    dataQ = json.load(file)
-    
-with open("answer.json", "r") as file:
-    dataA = json.load(file)
 
-r =Response(dataQ,dataA)
-sim = Similarities()
-print(r.createListOfDataWithoutKey())
-r.getResponse("خداحافظ")
+
 
