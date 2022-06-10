@@ -11,15 +11,13 @@ class Similarities:
       distanceDoc = {}
       cosSimList = {}
       
-      def __init__(self, listOfDoc):
+      def initClass(self, listOfDoc):
             for doc in listOfDoc:
                   self.addDocument(doc)
                   
             self.createIdfList()
             self.createTfList()
             
-            
-      
       def addDocument(self , document):
             #create list of words 
             listOfDoc =  document.split(' ')
@@ -39,7 +37,6 @@ class Similarities:
             
       
       def createIdfList(self):
-            
             for word in self.frequently_list:
                   repeat = self.numberRepeatInDocs(word)
                   self.idf_list[word] = math.log2(self.length_Doc/repeat)
@@ -52,7 +49,9 @@ class Similarities:
                         words[word] = self.idf_list[word] * words[word]
                   
                   self.documentsList[key] = words      
-                  
+            
+            
+          
       def numberRepeatInDocs(self ,word):
             number = 0
             for key in self.documentsList:
@@ -73,9 +72,12 @@ class Similarities:
             
             for key in self.frequently_list:
                   if key in frequentlyQuery:
+                        if maxRepeat==0:
+                              maxRepeat==0
                         tempDic[key] = self.idf_list[key] * (frequentlyQuery[key]/maxRepeat)
                         
             self.documentsList["q"] = tempDic
+            
             
 
       def setDistance(self):
@@ -87,12 +89,19 @@ class Similarities:
                         sum = sum + float (list_of_tf[key_tf] ** 2)
                   
                   self.distanceDoc[key] = math.sqrt((sum))
+            if self.distanceDoc["q"]==0:
+                  return 0
+            return 1
                   
       def setQuery(self,quey):
             self.query = quey
             self.setQueryDf()
-            self.setDistance()
-            self.cosSim()
+            
+            s = self.setDistance()
+            if s==0:
+                  return 0
+            else:
+                  self.cosSim()
             
             
             
@@ -112,6 +121,7 @@ class Similarities:
                   sum = sum /(self.distanceDoc[key]*self.distanceDoc["q"])
                   self.cosSimList[key] = sum
                   sum =0
+                  
       def MaxArr(self):
             max = 0
             maxIndex = ""
