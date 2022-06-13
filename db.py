@@ -15,12 +15,17 @@ class db:
        
       def getInfo(self,tableName,selector =" ",where=""):
             mycursor = self.mydb.cursor()
+            sql = ""
             if where=="":
-                  mycursor.execute("SELECT "+selector+" FROM "+tableName)
+                  sql += "SELECT "+selector+" FROM "+tableName+" ;"
+                 
             else:
-                   mycursor.execute("SELECT "+selector+" FROM "+tableName+" WHERE "+where )
-                  
+                  sql += "SELECT "+selector+" FROM "+tableName+" WHERE "+where +" ;"
+
+
+            mycursor.execute(str(sql))
             myresult = mycursor.fetchall()
+ 
             return myresult
       
       def setInfo(self,tableName,columns=[],value=[]):
@@ -53,7 +58,7 @@ class db:
             mycursor = self.mydb.cursor()
 
             sql = "UPDATE "+tableName+"  SET "+data+" WHERE "+where
-            # print(sql)
+
             mycursor.execute(sql)
 
             self.mydb.commit()
@@ -65,7 +70,7 @@ class db:
             user = self.getInfo("user","id","id="+str(chatId))
             if user==[]:
                   self.setInfo("user",["id","name","userName","flag"],[str(chatId),str(name),str(userName),str(0)])
-            # print(user)
+
       def getFlag(self,chatId):
             return self.getInfo("user","flag","id="+str(chatId))[0][0]
       
@@ -75,10 +80,11 @@ class db:
                   if item != None:
                         return i
             return ""
+      
       def setTempItem(self,chatid,response):
-            print("res"+response)
+            # print("res"+response)
             item = self.checkItem(response)
-            print("item -"+item)
+            # print("item -"+item)
             self.edit("user","temp='"+item+"'","id="+str(chatid))
                         
                   
@@ -100,15 +106,22 @@ class db:
                   orders +"هم اکنون سفارشی ندارید"
       
       def acceptAllOrder(self,chatid):
-            self.edit("`order`","status=1"," status=0 and id="+str(chatid) )
+            self.edit("`order`","status=1"," status=0 and id = "+str(chatid) )
+            
 
       def allOrder(self,chatid):
-             items =self.getInfo("`order`"," item , value ", "status=1 and id="+str(chatid))
-            #  print(items)
+             items =self.getInfo("`order`"," item , value ", "status=1 and id = "+str(chatid))
              orders = ""
              for item in items:
                   orders += "کالا : "+item[0]+"-- اندازه : "+item[1]+" کیلو\n"
-             return orders
+             if orders != "":
+                  return orders
+             else :
+                  orders +"هم اکنون سفارشی ندارید"
+       
+      # def __del__(self):
+            
+      #       print('Destructor called, connection closed.')
             
 
 # t =db()
