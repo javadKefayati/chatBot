@@ -35,26 +35,30 @@ class Response:
                   return "","", 1
             else:
                   namSimilarities , valueSimilarities = sim.result()
-                  print(namSimilarities)
+                  
+                  
                   for d in self.questionData:
                         nL = self.questionData[d]
                         for n in nL:
                             if n == namSimilarities:
+
+                              
                                 return d, n,0
 
       def getResponse(self,query):
             group,nearQ ,error = self.checkGroup(query)
+ 
             if error==1:
-                  return "","","", 1
-            
-                       
-            for a in self.answerData:
-                  if a == group:
-                        nList = self.answerData[a]
-                        randIndex = random.randint(0, len(nList)-1)
-                        print("nl="+nList[randIndex]+"---"+group+"--"+nearQ)
-                        return nList[randIndex], group,nearQ, 0
+                  return "","","", 1  
+            else :
+                  for a in self.answerData:
                         
+                        if a == group:
+                              nList = self.answerData[a]
+                              randIndex = random.randint(0, len(nList)-1)
+                              # print("nl="+nList[randIndex]+"---"+group+"--"+nearQ)
+                              return nList[randIndex], group,nearQ, 0
+
                   
             
       
