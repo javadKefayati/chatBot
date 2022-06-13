@@ -1,7 +1,5 @@
-import os 
 import telebot 
 import logging
-import enum
 import json
 import re
 import sys
@@ -23,70 +21,66 @@ def listener(messages):
     for m in messages:
         chatid = m.chat.id #give user id for resend message 
 
-        if m.content_type == 'text' and m.text!="/help" and m.text !="/start" and m.text !="/items" and m.text!="/allOrder": #check format message has text and doesn't has /help or /start 
-            # s =  Similarities([])
-            with open("question.json", "r") as file:
-                dataQ = json.load(file)
-            # logging.basicConfig(filename='./info.log', encoding='utf-8', level=logging.INFO)
+        if m.content_type == 'text' and m.text!="/help" and m.text !="/start" and m.text !="/items" and m.text!="/allOrder": #check format message has text and doesn'dataBase has /help or /start 
             
             text = m.text
             username = str(m.chat.username)
             first_name = str(m.chat.first_name)
             last_name = str(m.chat.last_name)
-            t= db()
-            t.addUserIfNotExist(chatid,first_name,username)
+            dataBase= db()
+            dataBase.addUserIfNotExist(chatid,first_name,username)
             r = Response()
-            print(text)
-            
-            logging.info('ci='+str(chatid)+"-un ="+username+"-fn:"+first_name+"-ln:"+last_name+"-t="+text)
+            print(text)            
+            logging.info('ci='+str(chatid)+"-un ="+username+"-fn:"+first_name+"-ln:"+last_name+"-dataBase="+text)
             response, group, nearQ, err = r.getResponse(str(text.strip()))
-            print("g="+group)
-            # bot.send_message(chatid, t.getTempOrder(chatid))
             
             if text=="فاکتور":
-                      tempOrder= t.getTempOrder(chatid)
+                      tempOrder= dataBase.getTempOrder(chatid)
                       
                       if tempOrder != None:
-                        bot.send_message(chatid, tempOrder)
+                                bot.send_message(chatid, tempOrder)
                       else:
                                 bot.send_message(chatid, "سفارشی ندارید" )
                                 
+            elif text=="سفارش ها" or text=="سفارشها":
+                    allOrder=dataBase.allOrder(chatid)
+                    
+                    if allOrder != None:
+                              bot.send_message(chatid, allOrder)
+                    else:
+                              bot.send_message(chatid, "سفارشی ندارید" )
+                    
             elif text =="*بله":
-                      t.acceptAllOrder(chatid)
+                      dataBase.acceptAllOrder(chatid)
                       bot.send_message(chatid, "عملیات با موفقیت انجام شد" )
             elif text =="*خیر":
                       bot.send_message(chatid, "ادامه بدهید به سفارش" )
             else :
-                if err ==1 and t.getFlag(chatid)==0:
+                if err ==1 and dataBase.getFlag(chatid)==0:
                           bot.send_message(chatid, "توان فهم ورودی شما را ندارم\nلطفا واضح تر بیان کنید")
 
-
                 #normal status
-                if group != "Shop" and err == 0 and t.getFlag(chatid) == 0:
+                if group != "Shop" and err == 0 and dataBase.getFlag(chatid) == 0:
                           bot.send_message(chatid, response)
 
-                if group == "Shop" and err == 0 and t.getFlag(chatid) == 0 :
-                          t.changeFlagUser(chatid,1)
-                          t.setTempItem(chatid ,nearQ)
+                if group == "Shop" and err == 0 and dataBase.getFlag(chatid) == 0 :
+                          dataBase.changeFlagUser(chatid,1)
+                          dataBase.setTempItem(chatid ,nearQ)
                           bot.send_message(chatid, response)
 
-                elif   t.getFlag(chatid) == 1:
+                elif   dataBase.getFlag(chatid) == 1:
                           isNumber = re.search("\d+", text)
 
                           if isNumber==None:
                                     bot.send_message(chatid, " لطفا مقدار را با واحد کیلو وارد کنید ")
                           else :
-                            t.changeFlagUser(chatid,0)
+                            dataBase.changeFlagUser(chatid,0)
                             number = isNumber   
-                            tempIndex = t.getTempIndexFromUser(str(chatid))
-                            t.setOrder(chatid, tempIndex, number.group(), 0)
+                            tempIndex = dataBase.getTempIndexFromUser(str(chatid))
+                            dataBase.setOrder(chatid, tempIndex, number.group(), 0)
                             
                             bot.send_message(chatid, "بسیار خب سفارشتان ثبت شد ، برای نمایش لیست خرید فاکتور را تایپ کنید")
 
-                # print("fl="+str(t.getFlag(chatid)))
-                        
-                        
-                      
 
 #api key for connect to telegram bot
 TOKEN = "5331090152:AAHfzMVzZuiJQq9ChEsQ9ttc0pkkRfH9zXU"
@@ -94,31 +88,21 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands =["start"])
 def start(message):
-      bot.send_message(message.chat.id,"Hello \n welcome to ai chatbot ")
+      bot.send_message(message.chat.id,"سلام  \n اگه میخوای بدونی چه میکنم \items را تایپ کنید")
 
 @bot.message_handler(commands =["help"])
 def help(message):
-      bot.reply_to(message,"this message for help you !!!")
+      bot.reply_to(message,"شما میتوانید با بات صحبت کنید\n اگر سفارشی دارید از /items یک محصول را انتخاب و\n به بات اطلاع بدهید\nبعد از آن مقدار را اطلاع دهید\n برای دیدن سفارش های در سبد، 'فاکتور' را تایپ کنید\n برای دیدن تاریخچه تمامی سفارشات ، 'سفارش ها' را تایپ کنید")
       
 @bot.message_handler(commands =["items"])
 def items(message):
       bot.reply_to(message,"سیب - انار -گلابی- بستنی- شیر - موز")
       
-@bot.message_handler(commands =["allOrder"])
-def allOrder(message):
-      d = db()
-      orders = d.allOrder(message.chat.id )
-      if orders !=None:
-        bot.reply_to(message, orders)
-      else :
-                bot.reply_to(message, "سفارشی ندارید")
-
-
 
 bot.set_update_listener(listener) #register listener
 #Use none_stop flag let polling will not stop when get new message occur error.
 # Interval setup. Sleep 3 secs between request new message.
 bot.polling(interval=3)
 
-while True: # Don't let the main Thread end.
+while True: # Don'dataBase let the main Thread end.
     pass
